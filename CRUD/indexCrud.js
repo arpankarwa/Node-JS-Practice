@@ -31,6 +31,7 @@ mysqlConn.connect((err) => {
 //--------------------------------------------------------------------------------------------------------
 
 // Fetch All Users
+//working
 
 app.get('/getAllUsers', (req,res) => {
     mysqlConn.query('select * from crud', (err, rows) => {
@@ -46,6 +47,7 @@ app.get('/getAllUsers', (req,res) => {
 //--------------------------------------------------------------------------------------------------------
 
 // Fetch User with specific id
+//working
 
 app.get('/getUserById/:id', (req, res) => {
     mysqlConn.query('select * from crud where id = ?', [req.params.id], (err, rows) => {
@@ -57,7 +59,6 @@ app.get('/getUserById/:id', (req, res) => {
         }
     })
 });
-
 
 //--------------------------------------------------------------------------------------------------------
 
