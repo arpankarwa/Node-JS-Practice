@@ -14,26 +14,24 @@ var router = express.Router();
 app.use(express.json());
 
 const mysqlConn = mysql.createConnection({
-    host:'localhost',
-    user:'root',
-    password:'root',
-    database:'node_crud'
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'node_crud'
 });
 
 mysqlConn.connect((err) => {
     if (!err) {
         console.log('connection with database is successful..');
     } else {
-        console.log('connection with database is failed..due to error\n' + JSON.stringify(err));
+        console.log('connection with database is failed..due to error\n');
     }
 });
 
 //--------------------------------------------------------------------------------------------------------
 
 // Fetch All Users
-//working
-
-app.get('/getAllUsers', (req,res) => {
+app.get('/getAllUsers', (req, res) => {
     mysqlConn.query('select * from crud', (err, rows) => {
         if (!err) {
             console.log(rows);
@@ -47,8 +45,6 @@ app.get('/getAllUsers', (req,res) => {
 //--------------------------------------------------------------------------------------------------------
 
 // Fetch User with specific id
-//working
-
 app.get('/getUserById/:id', (req, res) => {
     mysqlConn.query('select * from crud where id = ?', [req.params.id], (err, rows) => {
         if (!err) {
@@ -63,41 +59,36 @@ app.get('/getUserById/:id', (req, res) => {
 //--------------------------------------------------------------------------------------------------------
 
 // Add new user
-//not working properly
 app.post('/addUser', (req, res) => {
-    mysqlConn.query('insert into crud values(?, ?, ?, ?)', [req.body.id, req.body.name, req.body.designation,
-         req.body.city], (err, rows) => {
-        if(!err) {
-            // if (rows.changedRows==0) {
-            //     res.send('cannot insert data')
-            // } else {
-                console.log(rows);
-                res.send(rows)
-                // return rows;
-            // }
-        } else {
-            console.log(err);
-        }
-    })
+    mysqlConn.query('insert into crud values(?, ?, ?, ?)',
+        [req.body.id, req.body.name, req.body.designation, req.body.city],
+        (err, rows) => {
+            if (!err) {
+                mysqlConn.commit(() => {
+                    console.log("record inserted\n", rows);
+                    res.status(200).send(rows);
+                });
+            } else {
+                console.log("error present\n", err);
+                res.status(400).send(err);
+            }
+        })
 });
-
 
 //--------------------------------------------------------------------------------------------------------
 
 // Update user
-//not working properly
 app.put('/updateUser/:id', (req, res) => {
     mysqlConn.query('update crud set name = ?, designation = ?, city = ? where id = ?', [req.body.name, req.body.designation,
-         req.body.city, req.params.id], (err, rows) => {
-        if(!err) {
-            if (rows.changedRows==0) {
-                res.send('cannot update')
-            } else {
-                console.log(rows);
-                res.send(rows);
-            }
+    req.body.city, req.params.id], (err, rows) => {
+        if (!err) {
+            mysqlConn.commit(() => {
+                console.log("record updated\n", rows);
+                res.status(200).send(rows);
+            });
         } else {
-            console.log(err);
+            console.log("error present..cannot update\n", err);
+            res.status(400).send(err);
         }
     })
 });
@@ -107,23 +98,22 @@ app.put('/updateUser/:id', (req, res) => {
 //Delete user
 //not working properly
 app.delete('/deleteUserById/:id', (req, res) => {
-    mysqlConn.query('DELETE FROM crud WHERE id = ?', [req.params.id], (err, rows) => {
-        if(!err) {
-            if (rows.affectedRows == 0) {
-                res.send('id not present')
-                console.log('id not present');
-            } else {
-                res.send('record deleted')
-                console.log('record deleted successfully');
-            }
+    mysqlConn.query('DELETE * FROM crud WHERE id = ?', req.params.id, (err, rows) => {
+        if (!err) {
+            mysqlConn.commit(() => {
+                res.status(200).send('record deleted successfully');
+                console.log('record deleted successfully\n', rows);
+            });
         } else {
-            console.log(err);
+            res.status(400).send('id not present');
+            console.log('id not present\n', rows);
         }
-    })
+    });
 });
 
 // -------------------------------------------------------------------------------------------------------
 
+//server port listening
 app.listen(port, () => {
     console.log(`server is running successfully on port ${port}`);
 });
